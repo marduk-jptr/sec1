@@ -1,0 +1,35 @@
+#include <iostream>
+#include <cpprest/http_client.h>
+
+int main() {
+    // Замените YOUR_API_KEY на ваш ключ API от Google Maps
+    std::string api_key = "YOUR_API_KEY";
+
+    // Адрес для получения геолокации
+    std::string address = "1600 Amphitheatre Parkway, Mountain View, CA";
+
+    // Создаем клиент HTTP
+    web::http::client::http_client client(U("https://maps.googleapis.com/maps/api/geocode/json"));
+
+    // Формируем параметры запроса
+    web::http::uri_builder builder;
+    builder.append_query(U("address"), address);
+    builder.append_query(U("key"), api_key);
+
+    // Отправляем GET-запрос на API Google Maps для получения данных о местоположении
+    client.request(web::http::methods::GET, builder.to_string())
+        .then([](web::http::http_response response) {
+            return response.extract_json();
+        })
+        .then([](web::json::value json) {
+            // Обрабатываем ответ от сервера
+            auto location = json[U("results")].as_array()[0][U("geometry")][U("location")];
+            double latitude = location[U("lat")].as_double();
+            double longitude = location[U("lng")].as_double();
+
+            std::cout << "Широта: " << latitude << ", Долгота: " << longitude << std::endl;
+        })
+        .wait();
+
+    return 0;
+}
