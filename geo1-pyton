@@ -1,0 +1,34 @@
+import requests
+
+def main():
+    # Замените YOUR_API_KEY на ваш ключ API от Google Maps
+    api_key = "YOUR_API_KEY"
+
+    # Адрес для получения геолокации
+    address = "1600 Amphitheatre Parkway, Mountain View, CA"
+
+    # URL для API Google Maps
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+
+    # Формируем параметры запроса
+    params = {
+        "address": address,
+        "key": api_key
+    }
+
+    # Отправляем GET-запрос на API Google Maps для получения данных о местоположении
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    # Обрабатываем ответ от сервера
+    if data["status"] == "OK":
+        location = data["results"][0]["geometry"]["location"]
+        latitude = location["lat"]
+        longitude = location["lng"]
+
+        print(f"Широта: {latitude}, Долгота: {longitude}")
+    else:
+        print("Не удалось получить геолокацию. Проверьте ключ API и адрес.")
+
+if __name__ == "__main__":
+    main()
