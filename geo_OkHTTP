@@ -1,0 +1,60 @@
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+public class Main {
+
+    public static void main(String[] args) {
+        // Замените YOUR_API_KEY на ваш ключ API от Google Maps
+        String apiKey = "YOUR_API_KEY";
+
+        // Адрес для получения геолокации
+        String address = "1600 Amphitheatre Parkway, Mountain View, CA";
+
+        // URL для API Google Maps
+        String url = "https://maps.googleapis.com/maps/api/geocode/json";
+
+        // Формируем URL с параметрами запроса
+        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
+        httpBuilder.addQueryParameter("address", address);
+        httpBuilder.addQueryParameter("key", apiKey);
+        String requestUrl = httpBuilder.build().toString();
+
+        // Создаем клиент OkHttpClient
+        OkHttpClient client = new OkHttpClient();
+
+        // Создаем GET-запрос
+        Request request = new Request.Builder()
+                .url(requestUrl)
+                .build();
+
+        try {
+            // Отправляем запрос и получаем ответ
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // Получаем тело ответа и парсим его в JSON
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+
+            // Обрабатываем ответ от сервера
+            String status = jsonResponse.getString("status");
+            if (status.equals("OK")) {
+                JSONArray results = jsonResponse.getJSONArray("results");
+                JSONObject location = results.getJSONObject(0).getJSONObject("geometry").getJSONObject("location");
+                double latitude = location.getDouble("lat");
+                double longitude = location.getDouble("lng");
+
+                System.out.println("Широта: " + latitude + ", Долгота: " + longitude);
+            } else {
+                System.out.println("Не удалось получить геолокацию. Проверьте ключ API и адрес.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
